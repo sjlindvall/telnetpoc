@@ -91,7 +91,7 @@ void runConsole(ThreadData *context)
     
     switch (st) {
 
-        SRVST_CLIENT_CONNECTED:
+        case SRVST_CLIENT_CONNECTED:
             if (strstr(context->buffer,"sbcmon")>0)
             {
                 context->state = SRVST_MENU_SBCMON;
@@ -100,7 +100,7 @@ void runConsole(ThreadData *context)
             printf("SRVST_CLIENT_CONNECTED\n");
             break;
 
-        SRVST_MENU_SBCMON:
+        case SRVST_MENU_SBCMON:
             if (strstr(context->buffer,"q")>0)
             {
                 context->state = SRVST_CLIENT_CONNECTED;
@@ -115,7 +115,7 @@ void runConsole(ThreadData *context)
             printf("SRVST_MENU_SBCMON\n");
             break;
 
-        SRVST_MENU_PBI:
+        case SRVST_MENU_PBI:
             if (strstr(context->buffer,"q")>0)
             {
                 context->state = SRVST_MENU_SBCMON;
@@ -131,15 +131,11 @@ void runConsole(ThreadData *context)
             break;
 
 
-        SRVST_ERROR:
+        case SRVST_ERROR:
             break;
         default:
             break;
     }
-
-
-
-    
 }
 
 
