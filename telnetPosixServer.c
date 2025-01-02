@@ -13,6 +13,7 @@
 
 Settings globals;
 Database database;
+IdfReg idfreg;
 
 // Define the callback function type
 typedef void (*CallbackType)(const char *message);
@@ -87,15 +88,18 @@ void sendReply(int sock, const char *data) {
 void runConsole(ThreadData *context)
 {
     printf("[%d]received data: %s\n", context->state, context->buffer);
-    ServiceStates st = context->state;
-    
-    switch (st) {
+ONE_MORE_TIME:    
+    switch (context->state) {
 
         case SRVST_CLIENT_CONNECTED:
             if (strstr(context->buffer,"sbcmon")>0)
             {
                 context->state = SRVST_MENU_SBCMON;
                 sendReply(context->clientSocket, "Test program RCU bla bla\n\nSBCMON:");
+            }
+            else if (strstr(context->buffer,"\n") > 0)
+            {
+                sendReply(context->clientSocket, "->");
             }
             printf("SRVST_CLIENT_CONNECTED\n");
             break;
@@ -112,6 +116,10 @@ void runConsole(ThreadData *context)
                 printf("SRVST_MENU_PBI\n");
                 sendReply(context->clientSocket, "SBCMON/PBI:");
             }
+            else if (strstr(context->buffer,"\n") > 0)
+            {
+                sendReply(context->clientSocket, "SBCMON:");
+            }
             printf("SRVST_MENU_SBCMON\n");
             break;
 
@@ -123,13 +131,36 @@ void runConsole(ThreadData *context)
             }
             else  if (strstr(context->buffer,"rdi")>0)
             {
-                context->state = SRVST_REQUEST_IDF;
-                printf("SRVST_MENU_PBI\n");
-                sendReply(context->clientSocket, "SBCMON/PBI/RDI");
+                char * args  = strdup(context->buffer);
+                char *argCmd, *argSlot, *argIdf;
+                int slot;
+                int idf;
+                argCmd = strtok(args," ");
+                argSlot = strtok(NULL, " ");
+                argIdf = strtok(NULL, " ");
+                if (argCmd != NULL && argSlot != NULL && argIdf != NULL)
+                {
+                    printf("arg %s %s %s\n", argCmd, argSlot, argIdf);
+                    slot = strtol(argSlot, NULL, 10);
+                    idf = strtol(argSlot, NULL, 16);
+                    printf("int %d %d\n", slot, idf);
+                    idfreg.slot = (uint8_t) slot;
+                    idfreg.idf = (uint16_t) idf;
+                    context->state = SRVST_REQUEST_IDF;
+                    goto ONE_MORE_TIME;
+                }
+            }
+            else if (strstr(context->buffer,"\n") > 0)
+            {
+                sendReply(context->clientSocket, "SBCMON/PBI:");
             }
             printf("SRVST_MENU_PBI\n");
             break;
 
+        case SRVST_REQUEST_IDF:
+            printf("IDF %d %x\n", idfreg.slot, idfreg.idf);
+            context->state = SRVST_MENU_PBI;
+            break;
 
         case SRVST_ERROR:
             break;

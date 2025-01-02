@@ -157,6 +157,7 @@ void readFile(Settings *flg, Database *db)
     char *firstArg, *secondArg, *thirdArg, *endp;
     unsigned int temp = 0;
     db->index = 0;
+    int base = 16;
     // read and tokenize a line from open file
     while (fgets(oneLine, STRSIZE, flg->thisFile ) > 0)
     {
@@ -171,7 +172,8 @@ void readFile(Settings *flg, Database *db)
         {
     // and treat rest of tokens accordingly.
             firstArg = strtok_r(rest, "\t", &more);
-            if (firstArg != NULL && (temp = strtol(firstArg, &endp, 10)) > 0)
+            base = (strstr(firstArg,"0x") > 0) ? 16 : 10;
+            if (firstArg != NULL && (temp = strtol(firstArg, &endp, base)) > 0)
             {
                 //printf("temp1=%x\n", temp);
                 db->idfreg[db->index].slot = (uint8_t)(temp);
